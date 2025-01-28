@@ -29,7 +29,7 @@ public class ClosestPair extends JFrame {
         isHighlighted = false; // Initially, no pair is highlighted.
         allowDuplicates = true; // Default setting is to allow duplicate points.
 
-        // Set the icon for the application.
+        // Set the icon for the application (optional, add an icon file named "icon.png" in your project directory).
         setIconImage(new ImageIcon("icon.png").getImage());
 
         // Create an input panel at the top of the window.
@@ -160,15 +160,30 @@ public class ClosestPair extends JFrame {
 
                         Pair globalClosestPair = null;
                         double minDistance = Double.MAX_VALUE;
+                        List<Point> allPoints = new ArrayList<>(points);
 
                         long startTime = System.nanoTime(); // Start timing the operation.
 
+                        // Find closest pair within subsets.
                         for (Future<Pair> future : futures) {
                             Pair result = future.get(); // Fetch results from threads.
                             if (result.distance < minDistance) {
                                 // Update the global closest pair if a smaller distance is found.
                                 minDistance = result.distance;
                                 globalClosestPair = result;
+                            }
+                        }
+
+                        // Cross-subset comparison to ensure closest pair is found across all threads.
+                        for (int i = 0; i < allPoints.size(); i++) {
+                            for (int j = i + 1; j < allPoints.size(); j++) {
+                                Point p1 = allPoints.get(i);
+                                Point p2 = allPoints.get(j);
+                                double distance = p1.distance(p2);
+                                if (distance < minDistance) {
+                                    minDistance = distance;
+                                    globalClosestPair = new Pair(p1, p2, distance);
+                                }
                             }
                         }
 
